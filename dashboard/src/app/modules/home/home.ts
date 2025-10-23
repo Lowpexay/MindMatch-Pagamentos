@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CardComponent } from './components/card/card';
 import { CommonModule } from '@angular/common';
 import { HomeService } from '../../services/home/home';
 import { Pessoal } from '../pessoal/models/pessoal.interface';
 import { AppModule } from '../../app';
 import { Router } from '@angular/router';
+import { DashboardContextService } from '../../services/chatbot/dashboard-context.service';
 
 @Component({
   selector: 'dash-home',
@@ -13,6 +14,8 @@ import { Router } from '@angular/router';
   styleUrl: './home.less',
 })
 export class HomeComponet {
+  private dashboardContext = inject(DashboardContextService);
+  
   constructor(private homeService: HomeService, public global: AppModule, private router: Router) {}
 
   ngOnInit() {
@@ -62,7 +65,8 @@ export class HomeComponet {
           // this.pessoal[i].transactionDate = formatarData(this.pessoal[i].transactionDate);
         }
         this.juntarDados();
-        this.listarTransRecentes()
+        this.listarTransRecentes();
+        this.updateDashboardContext(); // Atualizar contexto para a Luma
       },
       error: (erro) => {
         console.error('Erro ao buscar dados:', erro);
@@ -199,5 +203,22 @@ export class HomeComponet {
 
   return `${day}/${month}/${year}`;
 }
+
+  // Atualizar contexto do dashboard para a Luma
+  private updateDashboardContext(): void {
+    // Atualizar estatísticas
+    this.dashboardContext.updateStats({
+      transRecente: this.transRecente,
+      maiorTransacao: this.maiorTransacao,
+      totalTransacoes: this.totalTransacoes,
+      totalTransacoesFeitas: this.totalTransacoesFeitas
+    });
+
+    // Atualizar transações
+    this.dashboardContext.updateTransactions(this.listaTransRecentes);
+
+    // Atualizar clientes
+    this.dashboardContext.updateClients(this.listaDados);
+  }
 }
 

@@ -1,14 +1,16 @@
 import { Component, signal } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { Navbar } from "./shared/components/navbar/navbar";
+import { ChatbotComponent } from "./shared/components/chatbot/chatbot";
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
   imports: [
-    // CommonModule,
+    CommonModule,
     RouterOutlet, 
-    Navbar
+    Navbar,
+    ChatbotComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.less'

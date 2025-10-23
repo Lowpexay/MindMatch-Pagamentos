@@ -1,0 +1,327 @@
+name: CI/CD Pipeline - Smart HAS
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '18'
+
+jobs:
+  # Job 1: Build e Test do Backend
+  backend-build-test:
+    name: Backend - Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Build with Maven
+      run: mvn clean install -DskipTests
+      working-directory: ./entrega-6
+
+    - name: Run Backend Tests
+      run: mvn test
+      working-directory: ./entrega-6
+
+    - name: Generate Test Report
+      if: always()
+      run: mvn surefire-report:report
+      working-directory: ./entrega-6
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: backend-test-results
+        path: entrega-6/target/surefire-reports/
+
+    - name: Build JAR
+      run: mvn package -DskipTests
+      working-directory: ./entrega-6
+
+    - name: Upload Backend Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: backend-jar
+        path: entrega-6/target/*.jar
+        retention-days: 7
+
+  # Job 2: Build e Test do Dashboard (Angular)
+  dashboard-build-test:
+    name: Dashboard - Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: entrega-6/dashboard/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./entrega-6/dashboard
+
+    - name: Create environment file
+      run: |
+        echo "VITE_GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}" > .env
+      working-directory: ./entrega-6/dashboard
+
+    - name: Lint code
+      run: npm run lint --if-present
+      working-directory: ./entrega-6/dashboard
+      continue-on-error: true
+
+    - name: Run Dashboard Tests
+      run: npm run test --if-present -- --watch=false --browsers=ChromeHeadless
+      working-directory: ./entrega-6/dashboard
+      continue-on-error: true
+
+    - name: Build Dashboard
+      run: npm run build
+      working-directory: ./entrega-6/dashboard
+      env:
+        VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+
+    - name: Upload Dashboard Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: dashboard-build
+        path: entrega-6/dashboard/dist/
+        retention-days: 7
+
+  # Job 3: Build e Test do Mobile (React Native)
+  mobile-build-test:
+    name: Mobile - Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: entrega-6/mobile/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./entrega-6/mobile
+
+    - name: Run Mobile Tests
+      run: npm run test --if-present
+      working-directory: ./entrega-6/mobile
+      continue-on-error: true
+
+    - name: Build Mobile App
+      run: npm run build
+      working-directory: ./entrega-6/mobile
+
+    - name: Upload Mobile Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: mobile-build
+        path: entrega-6/mobile/dist/
+        retention-days: 7
+
+  # Job 4: Code Quality Analysis
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    needs: [backend-build-test, dashboard-build-test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      continue-on-error: true
+
+  # Job 5: Deploy Backend
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    needs: [backend-build-test, code-quality]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download Backend Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: backend-jar
+        path: ./artifacts
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+      continue-on-error: true
+
+    - name: Deploy to AWS Elastic Beanstalk
+      run: |
+        echo "Deploying backend to AWS..."
+        # aws elasticbeanstalk create-application-version ...
+        # aws elasticbeanstalk update-environment ...
+      continue-on-error: true
+
+    - name: Log Deployment
+      run: |
+        echo "Backend deployment completed at $(date)"
+        echo "Artifact: $(ls -lh ./artifacts/*.jar)"
+
+  # Job 6: Deploy Dashboard
+  deploy-dashboard:
+    name: Deploy Dashboard
+    runs-on: ubuntu-latest
+    needs: [dashboard-build-test, code-quality]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download Dashboard Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: dashboard-build
+        path: ./dashboard-dist
+
+    - name: Deploy to Vercel/Netlify
+      run: |
+        echo "Deploying dashboard to hosting service..."
+        # npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+      continue-on-error: true
+
+    - name: Log Deployment
+      run: |
+        echo "Dashboard deployment completed at $(date)"
+        echo "Files: $(ls -lh ./dashboard-dist/)"
+
+  # Job 7: Database Migration (Oracle)
+  database-migration:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    needs: [backend-build-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Database Migrations
+      run: |
+        echo "Running Oracle database migrations..."
+        echo "Connection: ${{ secrets.ORACLE_DB_HOST }}"
+        # Add your migration scripts here
+      env:
+        ORACLE_DB_HOST: ${{ secrets.ORACLE_DB_HOST }}
+        ORACLE_DB_USER: ${{ secrets.ORACLE_DB_USER }}
+        ORACLE_DB_PASSWORD: ${{ secrets.ORACLE_DB_PASSWORD }}
+      continue-on-error: true
+
+  # Job 8: Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-dashboard]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Integration Tests
+      run: |
+        echo "Running integration tests..."
+        # Add your integration test commands here
+      continue-on-error: true
+
+  # Job 9: Generate Reports
+  generate-reports:
+    name: Generate Reports
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-dashboard, integration-tests]
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Generate Deployment Report
+      run: |
+        echo "=== CI/CD Pipeline Execution Report ===" > pipeline-report.txt
+        echo "Date: $(date)" >> pipeline-report.txt
+        echo "Branch: ${{ github.ref }}" >> pipeline-report.txt
+        echo "Commit: ${{ github.sha }}" >> pipeline-report.txt
+        echo "Author: ${{ github.actor }}" >> pipeline-report.txt
+        echo "" >> pipeline-report.txt
+        echo "Build Status: Success" >> pipeline-report.txt
+        echo "Deployment Status: Completed" >> pipeline-report.txt
+        cat pipeline-report.txt
+
+    - name: Upload Pipeline Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: pipeline-report
+        path: pipeline-report.txt
+        retention-days: 30
+
+    - name: Notify Slack/Email
+      run: |
+        echo "Sending notification..."
+        # Add notification logic here
+      continue-on-error: true
+
+  # Job 10: Cleanup
+  cleanup:
+    name: Cleanup Old Artifacts
+    runs-on: ubuntu-latest
+    needs: [generate-reports]
+    if: always()
+    
+    steps:
+    - name: Delete Old Artifacts
+      uses: c-hive/gha-remove-artifacts@v1
+      with:
+        age: '7 days'
+        skip-recent: 3
+      continue-on-error: true

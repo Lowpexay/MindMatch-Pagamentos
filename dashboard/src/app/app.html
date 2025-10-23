@@ -5,4 +5,9 @@
 
 
     <router-outlet></router-outlet>
+    
+    <!-- Chatbot Luma - disponível em todas as páginas exceto login -->
+    @if(this.router.url !== '/'){
+        <app-chatbot></app-chatbot>
+    }
 </div>
