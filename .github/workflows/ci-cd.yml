@@ -36,33 +36,29 @@ jobs:
 
     - name: Build with Maven
       run: mvn clean install -DskipTests
-      working-directory: ./entrega-6
 
     - name: Run Backend Tests
       run: mvn test
-      working-directory: ./entrega-6
 
     - name: Generate Test Report
       if: always()
       run: mvn surefire-report:report
-      working-directory: ./entrega-6
 
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: backend-test-results
-        path: entrega-6/target/surefire-reports/
+        path: target/surefire-reports/
 
     - name: Build JAR
       run: mvn package -DskipTests
-      working-directory: ./entrega-6
 
     - name: Upload Backend Artifact
       uses: actions/upload-artifact@v4
       with:
         name: backend-jar
-        path: entrega-6/target/*.jar
+        path: target/*.jar
         retention-days: 7
 
   # Job 2: Build e Test do Dashboard (Angular)
@@ -79,30 +75,30 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: entrega-6/dashboard/package-lock.json
+        cache-dependency-path: dashboard/package-lock.json
 
     - name: Install dependencies
       run: npm ci
-      working-directory: ./entrega-6/dashboard
+      working-directory: ./dashboard
 
     - name: Create environment file
       run: |
         echo "VITE_GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}" > .env
-      working-directory: ./entrega-6/dashboard
+      working-directory: ./dashboard
 
     - name: Lint code
       run: npm run lint --if-present
-      working-directory: ./entrega-6/dashboard
+      working-directory: ./dashboard
       continue-on-error: true
 
     - name: Run Dashboard Tests
       run: npm run test --if-present -- --watch=false --browsers=ChromeHeadless
-      working-directory: ./entrega-6/dashboard
+      working-directory: ./dashboard
       continue-on-error: true
 
     - name: Build Dashboard
       run: npm run build
-      working-directory: ./entrega-6/dashboard
+      working-directory: ./dashboard
       env:
         VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
 
@@ -110,7 +106,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: dashboard-build
-        path: entrega-6/dashboard/dist/
+        path: dashboard/dist/
         retention-days: 7
 
   # Job 3: Build e Test do Mobile (React Native)
@@ -127,26 +123,26 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: entrega-6/mobile/package-lock.json
+        cache-dependency-path: mobile/package-lock.json
 
     - name: Install dependencies
       run: npm ci
-      working-directory: ./entrega-6/mobile
+      working-directory: ./mobile
 
     - name: Run Mobile Tests
       run: npm run test --if-present
-      working-directory: ./entrega-6/mobile
+      working-directory: ./mobile
       continue-on-error: true
 
     - name: Build Mobile App
       run: npm run build
-      working-directory: ./entrega-6/mobile
+      working-directory: ./mobile
 
     - name: Upload Mobile Artifact
       uses: actions/upload-artifact@v4
       with:
         name: mobile-build
-        path: entrega-6/mobile/dist/
+        path: mobile/dist/
         retention-days: 7
 
   # Job 4: Code Quality Analysis
