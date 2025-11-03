@@ -1,0 +1,32 @@
+CREATE OR REPLACE PACKAGE PKG_CLIENTE AS
+    PROCEDURE RELATORIO_CONSUMO_CLIENTE(
+        p_id_cliente IN NUMBER,
+        o_cursor     OUT SYS_REFCURSOR
+    );
+    
+    FUNCTION TICKET_MEDIO_CLIENTE(
+        p_id_cliente IN NUMBER
+    ) RETURN NUMBER ;
+END PKG_CLIENTE;
+/
+
+CREATE OR REPLACE PACKAGE BODY PKG_CLIENTE AS
+    PROCEDURE RELATORIO_CONSUMO_CLIENTE (
+        p_id_cliente IN NUMBER,
+        o_cursor     OUT SYS_REFCURSOR
+    ) AS
+    BEGIN
+        PRC_RELATORIO_CONSUMO_CLIENTE(
+            p_id_cliente => p_id_cliente,
+            o_cursor => o_cursor
+        );
+    END RELATORIO_CONSUMO_CLIENTE;
+    
+    FUNCTION TICKET_MEDIO_CLIENTE (
+        p_id_cliente IN NUMBER
+    ) RETURN NUMBER AS
+    BEGIN
+        RETURN FN_TICKET_MEDIO_CLIENTE(p_id_cliente);
+    END TICKET_MEDIO_CLIENTE;
+END PKG_CLIENTE;
+/
