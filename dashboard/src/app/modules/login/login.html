@@ -1,20 +1,25 @@
 <div class="principal">
+    <h1 class="title">🛸 Estação de Comando Orbital</h1>
+    <p>Sistema de Monitoramento dde Agentes Espaciais</p>
+    <br>
   <div class="modal">
-    <div class="title">
-        <h1>Login</h1>
+    <div class="titleModal">
+        <p class="icon">🚀</p>
+        <h1>Acesso Restrito</h1>
+        <p>Somente pessoal autorizado</p>
     </div>
     <div class="forms">
         <p *ngIf="invalido">Usuario ou Senha Invalida</p>
         <div class="form">
-            <label for="">Usuario:</label>
-            <input type="text" [(ngModel)]="username">
+            <label for="">Id de Operador:</label>
+            <input type="text" [(ngModel)]="username" placeholder="operador@nasa.gov">
         </div>
         <div class="form">
-            <label for="">Senha:</label>
+            <label for="">Código de acesso:</label>
             <input type="password" [(ngModel)]="password">
         </div>
         
-        <button class="btnLogin" (click)="login()">Entrar</button>
+        <button class="btnLogin" (click)="login()">Iniciar Sessão de Comando</button>
     </div>
   </div>
 </div>

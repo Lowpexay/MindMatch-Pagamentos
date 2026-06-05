@@ -1,21 +1,53 @@
+@import "../../shared/styles/colors.less";
+
 .principal {
   width: 100%;
-  height: 90%;
+  height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  background-color: @fundo;
+
+  p{
+    color: @textos;
+  }
+
+  .title{
+    color: @titulos;
+    font-weight: bold;
+  }
+
+  .titleModal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    h1{
+      color: @cinzaPendente;
+    }
+  }
 
   .modal {
     width: 30%;
     height: 50%;
     padding: 20px;
-    background-color: #f9fafa;
+    background-color: @bgCard;
     border-radius: 20px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 4px 12px @titulos;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
+    .icon{
+      padding: 10px;
+      font-size: 3em;
+      border-radius: 60px;
+      background-image: linear-gradient(135deg, @titulos, @azulEscuro);
+      box-shadow: 0px 0px 12px @titulos;
+    }
 
     .forms {
       display: flex;
@@ -27,7 +59,7 @@
       gap: 20px;
 
       p{
-        color: #e12059;
+        color: @vermelhoCritico;
       }
 
       .form {
@@ -39,12 +71,17 @@
 
         input {
           width: 100%;
-          background-color: #eee9e9;
-          border: none;
+          background-color: @fundo;
+          color: @cinzaPendente;
           border-radius: 10px;
           height: 40px;
           padding: 10px;
-          border: 2px solid #707070;
+          border: 1px solid @titulos;
+        }
+
+        label{
+          color: @titulos;
+          font-weight: bold;
         }
       }
 
@@ -57,8 +94,8 @@
       }
 
       .btnLogin {
-        background-color: #6365f1;
-        color: #f9fafa;
+        background-image: linear-gradient(135deg, @titulos, @azulEscuro);
+        color: @cinzaPendente;
         border: none;
         cursor: pointer;
       }
