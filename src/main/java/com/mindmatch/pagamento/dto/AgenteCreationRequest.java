@@ -8,7 +8,8 @@ public record AgenteCreationRequest(
         String nome,
         String especialidade,
         LocalDate ultimaRevisao,
-        Double descanso
+        Double descanso,
+        Long idMissao
 ) {
 
 }
