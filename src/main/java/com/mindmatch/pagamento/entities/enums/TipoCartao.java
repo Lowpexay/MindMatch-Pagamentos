@@ -1,4 +1,4 @@
-package com.mindmatch.pagamento.entities;
+package com.mindmatch.pagamento.entities.enums;
 
 public enum TipoCartao {
     DEBITO,
