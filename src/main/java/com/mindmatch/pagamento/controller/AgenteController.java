@@ -1,9 +1,6 @@
 package com.mindmatch.pagamento.controller;
 
-import com.mindmatch.pagamento.dto.AgenteCreationRequest;
-import com.mindmatch.pagamento.dto.AgenteCreationResponse;
-import com.mindmatch.pagamento.dto.AgenteFetchResponse;
-import com.mindmatch.pagamento.dto.AgenteRotinaResponse;
+import com.mindmatch.pagamento.dto.*;
 import com.mindmatch.pagamento.service.AgenteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +36,18 @@ public class AgenteController {
     public ResponseEntity<AgenteRotinaResponse> findAgenteRotinaById(@PathVariable Long id) {
         AgenteRotinaResponse responseBody = service.findRotinaAgenteById(id);
 
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @GetMapping("/sinais/id/{id:[0-9]+}")
+    public ResponseEntity<AgenteSinalResponse> findAgenteSinal(@PathVariable Long id) {
+        AgenteSinalResponse responseBody = service.findAgenteSinal(id);
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @GetMapping("/sinais/media")
+    public ResponseEntity<MediaAgentesResponse> getMediaSinais() {
+        MediaAgentesResponse responseBody = service.mediaAgentes();
         return ResponseEntity.ok(responseBody);
     }
 

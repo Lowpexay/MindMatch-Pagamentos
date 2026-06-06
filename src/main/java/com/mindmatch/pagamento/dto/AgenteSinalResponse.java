@@ -1,13 +1,12 @@
 package com.mindmatch.pagamento.dto;
 
 import com.mindmatch.pagamento.entities.Agente;
-import com.mindmatch.pagamento.entities.SinalSaude;
 import com.mindmatch.pagamento.entities.enums.StatusAgente;
 
 import java.time.LocalDate;
 import java.util.List;
 
-public record AgenteFetchSinalResponse(
+public record AgenteSinalResponse(
         Long id,
         String nomeAgente,
         String especialidade,
@@ -18,7 +17,7 @@ public record AgenteFetchSinalResponse(
         Long tempoMissao,
         List<SinalSaudeResponse> sinalSaude
 ) {
-    public AgenteFetchSinalResponse(Agente entity) {
+    public AgenteSinalResponse(Agente entity) {
         this(
                 entity.getId(),
                 entity.getNome(),
