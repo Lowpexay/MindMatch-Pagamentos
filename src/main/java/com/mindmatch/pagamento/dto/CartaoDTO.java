@@ -1,7 +1,7 @@
 package com.mindmatch.pagamento.dto;
 
 import com.mindmatch.pagamento.entities.Cartao;
-import com.mindmatch.pagamento.entities.TipoCartao;
+import com.mindmatch.pagamento.entities.enums.TipoCartao;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

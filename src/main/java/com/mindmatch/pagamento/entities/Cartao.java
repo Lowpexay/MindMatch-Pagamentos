@@ -1,5 +1,6 @@
 package com.mindmatch.pagamento.entities;
 
+import com.mindmatch.pagamento.entities.enums.TipoCartao;
 import jakarta.persistence.*;
 import lombok.*;
 
