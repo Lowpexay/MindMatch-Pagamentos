@@ -35,7 +35,7 @@ public class Agente {
     private Double descanso;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_missao", nullable = true)
+    @JoinColumn(name = "id_missao", nullable = false)
     private Missao missao;
 
     @Enumerated(EnumType.STRING)
@@ -46,4 +46,6 @@ public class Agente {
     @OneToMany(mappedBy = "agente", cascade = CascadeType.MERGE)
     private List<SinalSaude> sinaisSaude;
 
+    @OneToMany(mappedBy = "agente")
+    private List<Tarefa> tarefas;
 }

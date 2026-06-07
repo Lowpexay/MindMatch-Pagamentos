@@ -42,6 +42,6 @@ public class Tarefa {
     private StatusTarefa status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_agente", nullable = false)
+    @JoinColumn(name = "id_agente")
     private Agente agente;
 }

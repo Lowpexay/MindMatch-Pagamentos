@@ -11,10 +11,11 @@ public record AgenteCreationResponse(
     String especialidade,
     LocalDate ultimaRevisao,
     StatusAgente status,
-    Double descanso
+    Double descanso,
+    Long idMissao
 ) {
 
     public AgenteCreationResponse(Agente entity) {
-        this(entity.getId(), entity.getNome(), entity.getEspecialidade(), entity.getUltimaRevisao(), entity.getStatus(), entity.getDescanso());
+        this(entity.getId(), entity.getNome(), entity.getEspecialidade(), entity.getUltimaRevisao(), entity.getStatus(), entity.getDescanso(), entity.getMissao().getId());
     }
 }
