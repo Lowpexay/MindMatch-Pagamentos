@@ -1,0 +1,109 @@
+<div class="principal">
+  <p class="mensagem" *ngIf="mensagem">{{ mensagem }}</p>
+  <p class="carregando" *ngIf="carregando">Carregando rotina...</p>
+
+  <ng-container *ngIf="rotina">
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-profile">
+          <div class="avatar">🧑‍🚀</div>
+          <div class="agent-info">
+            <h2>{{ rotina.nomeAgente }}</h2>
+            <p>Agente #{{ rotina.idAgente }} · Ciclo diário</p>
+          </div>
+        </div>
+        <span class="badge-ativo">Ativo</span>
+      </div>
+
+      <div class="datetime-row">
+        <div class="datetime-box">
+          <span>Data Atual</span>
+          <p>{{ dataAtual }}</p>
+        </div>
+        <div class="datetime-box">
+          <span>Hora UTC</span>
+          <p>{{ horaUtc }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="resumo-card">
+      <div class="section-header">
+        <div class="section-icon">📊</div>
+        <div>
+          <h3>Resumo de Cumprimento</h3>
+          <p>Progresso das atividades de hoje</p>
+        </div>
+      </div>
+
+      <div class="status-cards">
+        <div class="status-box concluidos">
+          <strong>{{ concluidos }}</strong>
+          <span>Concluídos</span>
+        </div>
+        <div class="status-box andamento">
+          <strong>{{ emAndamento }}</strong>
+          <span>Em Andamento</span>
+        </div>
+        <div class="status-box pendentes">
+          <strong>{{ pendentes }}</strong>
+          <span>Pendentes</span>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-header">
+          <span>Progresso do Dia</span>
+          <strong>{{ progressoDia }}%</strong>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progressoDia"></div>
+        </div>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric">
+          <span>Cumprimento Semanal</span>
+          <strong class="metric-verde">{{ cumprimentoSemanal }}%</strong>
+        </div>
+        <div class="metric">
+          <span>Descanso Diário</span>
+          <strong class="metric-roxo">{{ rotina.tempoDescanso }}h / {{ descansoMeta }}h</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="cronograma-card">
+      <div class="section-header">
+        <div class="section-icon">⏰</div>
+        <div>
+          <h3>Cronograma Diário</h3>
+          <p>Todas as atividades programadas</p>
+        </div>
+      </div>
+
+      <div class="tarefas-lista" *ngIf="cronograma.length > 0; else emptyState">
+        <div class="tarefa-item" *ngFor="let tarefa of cronograma">
+          <div class="tarefa-icon">{{ getIconeTipo(tarefa.tipo) }}</div>
+          <div class="tarefa-content">
+            <div class="tarefa-meta">
+              <span class="tarefa-horario">{{ formatarIntervalo(tarefa.horario) }}</span>
+              <span class="prioridade-badge" [ngClass]="getPrioridadeClass(tarefa.prioridade)">
+                {{ tarefa.prioridade }}
+              </span>
+            </div>
+            <h4>{{ tarefa.nome }}</h4>
+            <p>Tipo: {{ tarefa.tipo }}</p>
+          </div>
+          <span class="status-badge" [ngClass]="getStatusClass(tarefa.status)">
+            {{ getStatusLabel(tarefa.status) }}
+          </span>
+        </div>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="empty-state">Nenhuma atividade programada para este agente.</div>
+      </ng-template>
+    </div>
+  </ng-container>
+</div>
