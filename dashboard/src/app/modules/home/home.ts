@@ -1,15 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { CardComponent } from './components/card/card';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HomeService } from '../../services/home/home';
-import { Pessoal } from '../pessoal/models/pessoal.interface';
 import { AppModule } from '../../app';
 import { Router } from '@angular/router';
 import { DashboardContextService } from '../../services/chatbot/dashboard-context.service';
 
 @Component({
   selector: 'dash-home',
-  imports: [CardComponent, CommonModule],
+  imports: [CardComponent, CommonModule, FormsModule],
   templateUrl: './home.html',
   styleUrl: './home.less',
 })
@@ -20,9 +20,8 @@ export class HomeComponet {
 
   ngOnInit() {
     if (this.global.logou == true) {
+      this.obterMissoes();
       this.obterDados();
-      this.obterCartoes();
-      this.obterNomes();
     } else {
       this.router.navigate(['']);
     }
@@ -32,161 +31,123 @@ export class HomeComponet {
   cartoes: any = [];
   listaDados: any[] = [];
   nomes: any = []
-  listaTransRecentes: any = []
+  listaAgentes: any = []
 
-  transRecente: number = 0;
-  maiorTransacao: number = 0;
-  totalTransacoes: number = 0;
-  totalTransacoesFeitas: number = 0;
+  totalAgentes: number = 0;
+  totalMissoes: number = 0;
+  agentesAtencao: number = 0;
+  agentesCriticos: number = 0;
+  agentesNormal: number = 0;
+  statusCritico: number = 0;
 
-  async obterDados() {
-    await this.homeService.obterDados().subscribe({
-      next: (dados) => {
-        this.pessoal = dados;
+  get agentesEmRisco(): number {
+    return this.agentesAtencao + this.agentesCriticos;
+  }
 
-        this.totalTransacoesFeitas = this.pessoal.length;
-        this.maiorTransacao = this.pessoal[1].valor;
+  temAgente: boolean = false;
+  modalCriarAgente: boolean = false;
+  erroModal: string = '';
+  missoes: any[] = [];
 
-        const maisRecente = this.pessoal.reduce((maisNova, atual) =>
-          new Date(atual.dataTransacao) > new Date(maisNova.dataTransacao) ? atual : maisNova
-        );
+  novoAgente = {
+    nome: '',
+    especialidade: '',
+    ultimaRevisao: '',
+    descanso: null as number | null,
+    idMissao: null as number | null,
+  };
 
-        this.transRecente = maisRecente.valor;
-        // (this.pessoal);
+  obterDados() {
+    this.homeService.obterAgentes().subscribe({
+      next: (dados: any[]) => {
+        this.temAgente = Array.isArray(dados) && dados.length > 0;
+        this.totalAgentes = dados.length;
+        this.agentesAtencao = dados.filter((item: any) => item.status === 'ATENCAO').length;
+        this.agentesCriticos = dados.filter((item: any) => item.status === 'CRITICO').length;
+        this.agentesNormal = dados.filter((item: any) => item.status === 'NORMAL').length;
 
-        for (let i = 0; i < this.pessoal.length; i++) {
-          // (this.pessoal[i]);
-          this.totalTransacoes += this.pessoal[i].valor;
+        this.listaAgentes = (dados || []).map((item: any) => ({
+          ...item,
+          nomeMissao: this.getNomeMissao(item.idMissao),
+        }));
 
-          if (this.maiorTransacao < this.pessoal[i].valor) {
-            this.maiorTransacao = this.pessoal[i].valor;
-          }
-
-          // this.pessoal[i].transactionDate = formatarData(this.pessoal[i].transactionDate);
+        if (!this.temAgente) {
+          this.modalCriarAgente = true;
         }
-        this.juntarDados();
-        this.listarTransRecentes();
         this.updateDashboardContext(); // Atualizar contexto para a Luma
       },
       error: (erro) => {
         console.error('Erro ao buscar dados:', erro);
+        this.modalCriarAgente = true;
       },
     });
   }
 
-  async obterCartoes() {
-    await this.homeService.obterDadosCartao().subscribe({
-      next: (dados) => {
-        this.cartoes = dados;
+  private getNomeMissao(idMissao: number): string {
+    const missao = this.missoes.find((m) => m.id === idMissao);
+    return missao ? missao.nome : `Missão ${idMissao}`;
+  }
+
+  obterMissoes() {
+    this.homeService.obterMissoes().subscribe({
+      next: (dados: any[]) => {
+        this.missoes = dados || [];
+        this.totalMissoes = dados.length
+      },
+      error: (erro) => {
+        console.error('Erro ao buscar missões:', erro);
       },
     });
   }
-  async obterNomes() {
-    await this.homeService.obterDadosNomes().subscribe({
-      next: (dados) => {
-        this.nomes = dados;
-      },
-    });
+
+  openModal() {
+    this.modalCriarAgente = true;
+    this.erroModal = '';
   }
 
-  async juntarDados() {
-    // (this.nomes);
-    // (this.cartoes);
-    (this.pessoal);
+  closeModal() {
+    this.modalCriarAgente = false;
+    this.erroModal = '';
+  }
 
-    for (let i = 0; i < this.nomes.length; i++) {
+  resetForm() {
+    this.novoAgente = {
+      nome: '',
+      especialidade: '',
+      ultimaRevisao: '',
+      descanso: null,
+      idMissao: null,
+    };
+  }
 
-      let listaCompras = []
-      for(let j=0; j<this.pessoal.length; j++){
-        if(this.pessoal[j].clienteId === this.nomes[i].id){
-          listaCompras.push(this.pessoal[j])
-        }
-      }
-
-      let listaCartoes = []
-      for(let l = 0; l<this.cartoes.length; l++){
-        if(this.cartoes[l].clienteId === this.nomes[i].id){
-          listaCartoes.push(this.cartoes[l])
-        }
-      }
-
-      this.listaDados.push({
-        id: this.nomes[i].id,
-        nome: this.nomes[i].nome,
-        email: this.nomes[i].email,
-        telefone: this.nomes[i].telefone,
-        valorMedioCompra: this.nomes[i].valorMedioCompra,
-        cartoes: listaCartoes,
-        transacoes: listaCompras
-      });
+  salvarAgente() {
+    if (
+      !this.novoAgente.nome ||
+      !this.novoAgente.especialidade ||
+      !this.novoAgente.ultimaRevisao ||
+      this.novoAgente.descanso === null ||
+      this.novoAgente.idMissao === null
+    ) {
+      this.erroModal = 'Preencha todos os campos para cadastrar o agente.';
+      return;
     }
-    // (this.listaDados);
-    this.global.listaDados = this.listaDados
+
+    this.homeService.criarAgente(this.novoAgente).subscribe({
+      next: () => {
+        this.closeModal();
+        this.temAgente = true;
+        this.resetForm();
+        this.obterDados();
+      },
+      error: (erro) => {
+        console.error('Erro ao criar agente:', erro);
+        this.erroModal = 'Não foi possível cadastrar o agente. Tente novamente.';
+      },
+    });
   }
 
   public selecionarUsuario(id:number, telefone: string, email: string, idPagamento: number) {
-    this.global.telefone = telefone;
-    this.global.email = email
-    this.global.idCliente = id;
-    this.global.idTransacao = idPagamento;
-    this.global.selecionou = true;
-
-    this.router.navigate(['/pessoal']);
-  }
-
-  async listarTransRecentes(){
-    
-    for(let i=0; i<this.pessoal.length; i++){
-      // (this.pessoal[i]);
-
-      let objNome = {}
-      let objCartao = {}
-      let transacao = {}
-
-      transacao = {
-        id: this.pessoal[i].id,
-        valor: this.pessoal[i].valor,
-        dataTransacao: this.formatDateToBR(this.pessoal[i].dataTransacao),
-      }
-
-
-      for(let l=0; l<this.nomes.length; l++){
-        if(this.pessoal[i].clienteId === this.nomes[l].id){
-          objNome = {
-            nome: this.nomes[l].nome,
-            telefone: this.nomes[l].telefone,
-            email: this.nomes[l].email,
-            idCliente: this.nomes[l].id
-          }
-        }
-      }
-
-      for(let j=0; j<this.cartoes.length; j++){
-        if(this.pessoal[i].cartaoId === this.cartoes[j].id){
-          objCartao = {
-            nCartao: this.cartoes[j].numero,
-            cvv: this.cartoes[j].cvv,
-            tpCartao: this.cartoes[j].tipoCartao,
-            vencimento: this.formatarData(this.cartoes[j].vencimento)
-          }
-        }
-      }
-
-      Object.assign(transacao, objNome);
-      Object.assign(transacao, objCartao);
-      
-
-      this.listaTransRecentes.push(transacao)
-    }
-    console.log(this.listaTransRecentes);
-    
-  }
-
-  public formatarParaReal(valor: number): string {
-    return valor.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
+        this.router.navigate(['/pessoal']);
   }
 
   public formatarData(dataISO: string): string {
@@ -208,14 +169,12 @@ export class HomeComponet {
   private updateDashboardContext(): void {
     // Atualizar estatísticas
     this.dashboardContext.updateStats({
-      transRecente: this.transRecente,
-      maiorTransacao: this.maiorTransacao,
-      totalTransacoes: this.totalTransacoes,
-      totalTransacoesFeitas: this.totalTransacoesFeitas
+      totalTransacoes: this.totalAgentes,
+      totalTransacoesFeitas: this.totalMissoes
     });
 
     // Atualizar transações
-    this.dashboardContext.updateTransactions(this.listaTransRecentes);
+    this.dashboardContext.updateTransactions(this.listaAgentes);
 
     // Atualizar clientes
     this.dashboardContext.updateClients(this.listaDados);

@@ -1,118 +1,125 @@
 <div class="principal">
-  <div class="top">
-    <h1>Pessoal</h1>
-    <p>Gerencie informações de um usuario especifico</p>
-  </div>
-  <div class="forms">
-    <div class="formTitle">
-      <p style="font-size: 2em">🔎</p>
-      <h3>Buscar Cliente</h3>
-      <p>Insira os dados do cliente para ver suas ultimas operações</p>
-    </div>
-    <div class="formInputs">
-      <div class="form">
-        <label for="Nome">Email:</label>
-        <input type="text" id="nome" name="Nome" [(ngModel)]="email" />
-      </div>
-      <div class="form">
-        <label for="NCartao">Telefone:</label>
-        <input type="text" id="nCartao" name="NCartao" [(ngModel)]="telefone" />
-      </div>
-    </div>
-    <p class="mensagem" *ngIf="mensagem">{{mensagem}}</p>
-    <div class="formsBtn">
-      <button type="button" class="btnBusca" (click)="clicouBotao(telefone, email)">Buscar Cliente</button>
-      <button type="button" class="btnLimpa" (click)="limparInfo()">Limpar Campos</button>
+  <div class="header">
+    <div class="header-left">
+      <h1 class="section-label">Busca de Agentes</h1>
+      <p>Localize e monitore agentes individuais</p>
     </div>
   </div>
-  @if (mostraInfos){
 
-  <div class="cliente">
-    <div class="dados">
-      <div class="tituloDados">
-        <h3 style="color: #262626">Transações Recentes</h3>
-        <p style="color: #707070">Ultimas movimentações do sistema</p>
-      </div>
-      <div class="dadosUsur">
-        <div class="dado">
-          <label for="">Nome</label>
-          <p>{{dadosCliente.nome}}</p>
-        </div>
-        <div class="dado">
-          <label for="">Email</label>
-          <p>{{dadosCliente.email}}</p>
-        </div>
-        <div class="dado">
-          <label for="">Telefone</label>
-          <p>{{dadosCliente.telefone}}</p>
-        </div>
-        <div class="dado">
-          <label for="">Numero de cartões</label>
-          <p>{{listaCartoes.length}}</p>
-        </div>
-      </div>
-      <div class="curios" *ngIf="!global.selecionou">
-        <div class="curiosidade">
-            <p>{{listaTransacoes.length}}</p>
-            <label for="">Numero de Operações</label>
-        </div>
-        <div class="curiosidade">
-            <p>{{totalTransacoes}}</p>
-            <label for="">Total Transferido</label>
-        </div>
-        <div class="curiosidade">
-            <p>{{dadosCliente.valorMedioCompra}}</p>
-            <label for="">Valor médio de Compra</label>
-        </div>
+  <div class="search-card">
+    <div class="search-header">
+      <div class="search-icon">🔍</div>
+      <div>
+        <h2>Buscar Agente</h2>
+        <p>Preencha pelo menos um campo para pesquisar</p>
       </div>
     </div>
-    <div class="list">
-      <div class="infos">
-        <h3 style="color: #262626">Transações do mes atual</h3>
-        <p style="color: #707070">Ultimas movimentações do sistema</p>
+
+    <div class="search-grid">
+      <div class="field">
+        <label>Nome do Agente</label>
+        <input type="text" placeholder="Cmdr. Sarah Chen" [(ngModel)]="nomeAgenteBusca" />
       </div>
-      <div class="table">
+      <div class="field">
+        <label>ID do Agente</label>
+        <input type="text" placeholder="1, 2, 3..." [(ngModel)]="idAgente" />
+      </div>
+      <div class="field">
+        <label>Missão</label>
+        <input type="text" placeholder="ISS, MOON, MARS..." [(ngModel)]="missaoBusca" />
+      </div>
+    </div>
+
+    <div class="search-actions">
+      <button class="btn-search" type="button" (click)="buscarAgente()">Localizar Agente</button>
+      <button class="btn-clear" type="button" (click)="limparCampos()">Limpar Campos</button>
+    </div>
+
+    <p class="mensagem" *ngIf="mensagem">{{ mensagem }}</p>
+  </div>
+
+  <div class="result-grid" *ngIf="showResult">
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-badge">Perfil do Agente</div>
+        <span>Agente localizado com sucesso</span>
+      </div>
+
+      <div class="profile-info">
+        <div class="info-box">
+          <label>Nome</label>
+          <p>{{ agente.nomeAgente || agente.nome }}</p>
+        </div>
+        <div class="info-box">
+          <label>ID</label>
+          <p>{{ agente.id }}</p>
+        </div>
+        <div class="info-box">
+          <label>Especialidade</label>
+          <p>{{ agente.especialidade }}</p>
+        </div>
+        <div class="info-box">
+          <label>Missão Atual</label>
+          <p>{{ agente.nomeMissao }}</p>
+        </div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="stat-card">
+          <span>Tempo em Missão</span>
+          <p>{{ agente.tempoMissao }} dias</p>
+        </div>
+        <div class="stat-card">
+          <span>Próxima Revisão</span>
+          <p>{{ formatarData(agente.ultimaRevisao) }}</p>
+        </div>
+        <div class="stat-card status-card" [ngClass]="statusClass">
+          <span>Status Atual</span>
+          <p>{{ statusLabel }}</p>
+        </div>
+      </div>
+
+      <button class="btn-rotina" type="button" (click)="verRotina()">
+        ⏰ Ver Rotina do Agente
+      </button>
+    </div>
+
+    <div class="vitals-card">
+      <div class="vitals-header">
+        <div>
+          <h3>Sinais Vitais Recentes</h3>
+          <p>Últimas leituras do agente</p>
+        </div>
+      </div>
+
+      <div class="vitals-table">
         <table>
-          <thead style="background-color: #efefef">
-            @if(global.selecionou === true){
-             <tr>
-              <th align="start">Cliente</th>
-              <th align="start">Valor</th>
-              <th align="start">Cartao</th>
-              <th align="start">Data do pagm.</th>
-              <th align="start">Tipo do Cartao</th>
-            </tr>
-          } @else {
+          <thead>
             <tr>
-              <th align="start">Valor</th>
-              <th align="start">Data da Transacao</th>
-              <th align="start">Descrição</th>
+              <th>ID</th>
+              <th>Parâmetro</th>
+              <th>Categoria</th>
+              <th>Valor</th>
+              <th>Status</th>
             </tr>
-          }
           </thead>
-          @if(global.selecionou === true){
-            <tbody>
-              <tr>
-                <td align="start">{{transacao.cliente}}</td>
-                <td align="start">{{transacao.valor}}</td>
-                <td align="start">{{transacao.cartao}}</td>
-                <td align="start">{{transacao.data}}</td>
-                <td align="start">{{transacao.tipoCartao}}</td>
-              </tr>
-            </tbody>
-          } @else {
-            <tbody>
-              <tr *ngFor="let dados of listaTransacoes">
-                <td align="start">{{dados.valor}}</td>
-                <td align="start">{{formatarDataTransacao(dados.dataTransacao)}}</td>
-                <td align="start">{{dados.descricao}}</td>
-              </tr>
-            </tbody>
-          }
+          <tbody>
+            <tr *ngFor="let sinal of sinais">
+              <td>#{{ sinal.id }}</td>
+              <td>{{ sinal.nome }}</td>
+              <td>{{ sinal.categoria }}</td>
+              <td>{{ sinal.valor }}</td>
+              <td>
+                <span class="signal-status" [ngClass]="{
+                  normal: sinal.status === 'NORMAL',
+                  atencao: sinal.status === 'ATENCAO',
+                  critico: sinal.status === 'CRITICO'
+                }">{{ sinal.status }}</span>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
   </div>
-
-  }
 </div>

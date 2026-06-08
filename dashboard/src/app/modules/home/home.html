@@ -1,68 +1,126 @@
 <div class="principal">
   <div class="top">
     <div class="titles">
-      <h1>Dashboard</h1>
-      <p>Visão geral dos pagamentos</p>
+      <h1>Centro de Comando</h1>
+      <p>Monitoramento em tempo real</p>
     </div>
   </div>
   <div class="cards">
     <home-card
-      icon="⌛"
-      label="Transação mais recente"
-      [dado]="formatarParaReal(transRecente)"
+      icon="👨‍🚀"
+      label="Agentes Ativos"
+      dado="{{ totalAgentes }}"
       porcentagem="12%"
     ></home-card>
     <home-card
-      icon="💰"
-      label="Maior Transação"
-      dado="{{ formatarParaReal(maiorTransacao) }}"
+      icon="🛰️"
+      label="Missões em Curso"
+      dado="{{ totalMissoes }}"
       porcentagem="12%"
     ></home-card>
     <home-card
-      icon="📊"
-      label="Valor Total de Transações"
-      dado="{{ formatarParaReal(totalTransacoes) }}"
+      icon="⚠️"
+      label="Alertas Críticos"
+      dado="{{ agentesAtencao + agentesCriticos }}"
       porcentagem=""
     ></home-card>
     <home-card
-      icon="✅"
-      label="Total de transações feitas"
-      dado="{{ totalTransacoesFeitas }}"
+      icon="💚"
+      label="Agentes Saudaveis"
+      dado="{{ agentesNormal }}"
       porcentagem=""
     ></home-card>
   </div>
   <div class="list">
     <div class="infos">
-      <h3 style="color: #262626">Transações Recentes</h3>
-      <p style="color: #707070">Ultimas movimentações do sistema</p>
+      <div class="headerIcon">
+        <div class="bgIcon">🛰️</div>
+      </div>
+      <div class="headerText">
+        <h3 class="titulo">Transações Recentes</h3>
+        <p class="texto">Ultimas movimentações do sistema</p>
+      </div>
+      <div class="actions">
+        <button class="btnAddAgent" (click)="openModal()">+ Novo agente</button>
+      </div>
+    </div>
+    <div *ngIf="!temAgente" class="emptyState">
+      Nenhum agente encontrado. Cadastre um novo agente para iniciar o monitoramento.
     </div>
     <div class="table">
-      <table>
-        <thead style="background-color: #efefef">
+      <table class="tabela">
+        <thead>
           <tr>
             <th style="width: 1%"></th>
-            <th align="start">Nome</th>
-            <th align="start">Telefone</th>
-            <th align="start">Email</th>
-            <th align="start">Valor</th>
-            <th align="start">Data de Pagamento</th>
-            <th align="start"></th>
+            <th align="start">Agente</th>
+            <th align="start">ID</th>
+            <th align="start">Duração</th>
+            <th align="start">Missão</th>
+            <th align="start">Status</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let dado of listaTransRecentes">
-            <td align="center">👤</td>
-            <td align="start">{{ dado.nome }}</td>
-            <td align="start">{{ dado.telefone }}</td>
-            <td align="start">{{ dado.email }}</td>
-            <td align="start">{{ formatarParaReal(dado.valor) }}</td>
-            <td align="start">{{ dado.dataTransacao }}</td>
-            <td align="start" class="tdBtn">
-              <button class="btnSelecionar" (click)="selecionarUsuario(dado.idCliente ,dado.telefone, dado.email, dado.id)">Selecionar</button>
-            </td>
+          <tr *ngFor="let dado of listaAgentes">
+            <td align="center">🚀</td>
+            <td align="start" class="textImportant">{{ dado.nome }}</td>
+            <td align="start">#{{ dado.id }}</td>
+            <td align="start">{{ dado.duracaoMissao }}d</td>
+            <td align="start" class="textImportant">{{ dado.nomeMissao }}</td>
+            <td align="start" *ngIf="dado.status === 'NORMAL'"><p class="statusSucess">{{ dado.status }}</p></td>
+            <td align="start" *ngIf="dado.status === 'ATENCAO'"><p class="statusAtention">{{ dado.status }}</p></td>
+            <td align="start" *ngIf="dado.status === 'CRITICO'"><p class="statusDanger">{{ dado.status }}</p></td>
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div *ngIf="modalCriarAgente" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2>Cadastrar novo agente</h2>
+          <p>Preencha os dados do agente para iniciar a missão.</p>
+        </div>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Nome</label>
+          <input type="text" [(ngModel)]="novoAgente.nome" placeholder="Cmdr. Sarah Chen" />
+        </div>
+        <div class="input-group">
+          <label>Especialidade</label>
+          <input type="text" [(ngModel)]="novoAgente.especialidade" placeholder="Manutenção" />
+        </div>
+        <div class="input-group">
+          <label>Última revisão</label>
+          <input type="date" [(ngModel)]="novoAgente.ultimaRevisao" />
+        </div>
+        <div class="input-group">
+          <label>Descanso</label>
+          <input type="number" [(ngModel)]="novoAgente.descanso" placeholder="Horas de descanso" />
+        </div>
+        <div class="input-group">
+          <label>Missão</label>
+          <select [(ngModel)]="novoAgente.idMissao" class="selectMissao">
+            <option [ngValue]="null" disabled>Selecione a missão</option>
+            <option *ngFor="let missao of missoes" [ngValue]="missao.id">
+              {{ missao.id }} - {{ missao.nome }} ({{ missao.tempo }}h)
+            </option>
+          </select>
+        </div>
+        <div *ngIf="missoes.length === 0" class="error-message">
+          Não há missões disponíveis. Verifique os dados do backend.
+        </div>
+        <div *ngIf="erroModal" class="error-message">{{ erroModal }}</div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btnCancel" (click)="closeModal()">Cancelar</button>
+        <button class="btnSave" (click)="salvarAgente()">Salvar agente</button>
+      </div>
     </div>
   </div>
 </div>
