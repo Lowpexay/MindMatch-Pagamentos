@@ -1,6 +1,8 @@
+@import '../../styles/colors.less';
+
 nav {
   height: 10%;
-  background-color: #efefef;
+  background-color: @fundo;
   ul {
     display: flex;
     align-items: center;
@@ -9,13 +11,13 @@ nav {
     list-style: none;
     height: 100%;
     li {
-      width: 33.3%;
+      width: 25%;
       height: 100%;
       a {
         width: 100%;
         height: 100%;
         text-decoration: none;
-        color: #262626;
+        color: @textos;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -28,16 +30,38 @@ nav {
         }
       }
       a:hover {
-        color: #4e50c4;
-        background-color: #f9fafa;
-        border-bottom: 2px solid #4e50c4;
+        color: @titulos;
+        background-color: @bgCard;
+        border-bottom: 2px solid @titulos;
       }
     }
   }
 }
 
+
+
 .active {
-  color: #4e50c4;
-  background-color: #f9fafa;
-  border-bottom: 2px solid #4e50c4;
+  color: @titulos;
+  background-color: @bgCard;
+  border-bottom: 2px solid @titulos;
+}
+
+li.disabled {
+  .nav-disabled {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: rgba(139, 146, 184, 0.45);
+    font-size: large;
+    font-weight: bold;
+    cursor: not-allowed;
+    user-select: none;
+
+    p {
+      font-size: 1em;
+    }
+  }
 }

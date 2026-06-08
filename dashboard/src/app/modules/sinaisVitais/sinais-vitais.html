@@ -1,0 +1,125 @@
+<div class="principal">
+  <div class="page-header">
+    <h1>Monitoramento de Sinais Vitais</h1>
+    <p>Acompanhamento da saúde física e mental dos agentes</p>
+  </div>
+
+  <p class="mensagem" *ngIf="mensagem">{{ mensagem }}</p>
+  <p class="carregando" *ngIf="carregando">Carregando dados de saúde...</p>
+
+  <ng-container *ngIf="dados">
+    <div class="resumo-card">
+      <div class="resumo-header">
+        <div class="resumo-icon">💚</div>
+        <div>
+          <h2>Resumo de Saúde Geral</h2>
+          <p>
+            Agentes Monitorados: <strong>{{ dados.numeroAgentes }}</strong>
+            | Próxima Avaliação: <strong>{{ formatarData(dados.proximaAvaliacao) }}</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="progress-group">
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>Saúde Física Média</span>
+            <strong>{{ saudeFisicaMedia }}%</strong>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fisica" [style.width.%]="saudeFisicaMedia"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>Saúde Mental Média</span>
+            <strong>{{ saudeMentalMedia }}%</strong>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill mental" [style.width.%]="saudeMentalMedia"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-cards">
+        <div class="stat-box fisica">
+          <strong>{{ saudeFisicaMedia }}%</strong>
+          <span>Saúde Física</span>
+        </div>
+        <div class="stat-box mental">
+          <strong>{{ saudeMentalMedia }}%</strong>
+          <span>Saúde Mental</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="categoria-card">
+      <div class="section-header">
+        <div class="section-icon">📋</div>
+        <div>
+          <h3>Análise por Categoria</h3>
+          <p>Métricas por sistema biológico</p>
+        </div>
+      </div>
+
+      <div class="categoria-lista">
+        <div class="categoria-item" *ngFor="let sinal of sinais">
+          <div class="categoria-left">
+            <div class="categoria-icon">{{ getIcone(sinal.nomeSinal) }}</div>
+            <div>
+              <h4>{{ getNomeExibicao(sinal.nomeSinal) }}</h4>
+              <p>{{ formatarMediaCategoria(sinal) }}</p>
+            </div>
+          </div>
+          <div class="categoria-status">
+            <span class="normal">{{ sinal.agentesNormais }} Normal</span>
+            <span class="separador">/</span>
+            <span class="atencao">{{ sinal.agentesAtencao }} Atenção</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tendencias-card">
+      <div class="section-header">
+        <div class="section-icon">📈</div>
+        <div>
+          <h3>Tendências de Saúde</h3>
+          <p>Evolução das métricas vitais</p>
+        </div>
+      </div>
+
+      <div class="tabela-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Indicador</th>
+              <th>Valor Médio</th>
+              <th>Normais</th>
+              <th>Atenção</th>
+              <th>Tendência</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let sinal of sinais">
+              <td>
+                <div class="indicador-cell">
+                  <span class="indicador-icon">{{ getIcone(sinal.nomeSinal) }}</span>
+                  {{ getNomeExibicao(sinal.nomeSinal) }}
+                </div>
+              </td>
+              <td>{{ formatarValorMedio(sinal) }}</td>
+              <td>{{ sinal.agentesNormais }} agentes</td>
+              <td>{{ sinal.agentesAtencao }} agentes</td>
+              <td>
+                <span class="tendencia-badge" [ngClass]="getTendenciaClass(sinal.tendencia)">
+                  {{ getTendenciaLabel(sinal.tendencia) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</div>

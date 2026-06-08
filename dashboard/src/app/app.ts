@@ -35,4 +35,5 @@ export class AppModule {
 
   selecionou: boolean = false
   logou: boolean = false
+  idAgenteSelecionado: number = 0
 }

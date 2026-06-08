@@ -16,8 +16,6 @@ export interface TransactionData {
 }
 
 export interface DashboardStats {
-  transRecente: number;
-  maiorTransacao: number;
   totalTransacoes: number;
   totalTransacoesFeitas: number;
 }
@@ -38,8 +36,6 @@ export interface ClientData {
 export class DashboardContextService {
   private transactionsSubject = new BehaviorSubject<TransactionData[]>([]);
   private statsSubject = new BehaviorSubject<DashboardStats>({
-    transRecente: 0,
-    maiorTransacao: 0,
     totalTransacoes: 0,
     totalTransacoesFeitas: 0
   });
@@ -134,8 +130,6 @@ export class DashboardContextService {
 CONTEXTO DO DASHBOARD:
 
 📊 ESTATÍSTICAS GERAIS:
-- Transação mais recente: R$ ${stats.transRecente.toFixed(2)}
-- Maior transação: R$ ${stats.maiorTransacao.toFixed(2)}
 - Valor total de transações: R$ ${stats.totalTransacoes.toFixed(2)}
 - Total de transações: ${stats.totalTransacoesFeitas}
 

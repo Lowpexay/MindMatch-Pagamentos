@@ -2,20 +2,33 @@
   <ul>
     <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
       <a routerLink="/home">
-        <p class="icon">🏠</p>
-        Home
+        <p class="icon">🌌</p>
+        Overview
       </a>
     </li>
     <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
       <a routerLink="/pessoal">
-        <p class="icon">👤</p>
-        Pessoal
+        <p class="icon">🧑‍🚀</p>
+        Agentes
       </a>
     </li>
+    <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [class.disabled]="!global.idAgenteSelecionado">
+      @if (global.idAgenteSelecionado) {
+        <a routerLink="/rotinas">
+          <p class="icon">⏰</p>
+          Rotina
+        </a>
+      } @else {
+        <span class="nav-disabled">
+          <p class="icon">⏰</p>
+          Rotina
+        </span>
+      }
+    </li>
     <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-      <a routerLink="/transacoes">
-        <p class="icon">🏃‍♂️‍➡️</p>
-        Menu
+      <a routerLink="/sinais-vitais">
+        <p class="icon">💓</p>
+        Sinais Vitais
       </a>
     </li>
   </ul>

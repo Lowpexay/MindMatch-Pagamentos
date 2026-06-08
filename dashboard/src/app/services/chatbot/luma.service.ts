@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { DashboardContextService } from './dashboard-context.service';
+import { SpaceContextService } from './space-context.service';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -31,24 +32,27 @@ export class LumaService {
   public chatHistory$ = this.chatHistorySubject.asObservable();
 
   private systemContext = `
-    Você é Luma, uma assistente virtual inteligente do Smart HAS (Sistema de Pagamentos).
+    Você é Luma, a assistente virtual do MindSpace.
+    Você atua como central de apoio da tripulação espacial e também entende os dados operacionais do dashboard.
     Você tem acesso aos dados do dashboard em tempo real e pode consultar:
     
     📊 CAPACIDADES:
-    - Consultar transações de pagamentos
-    - Buscar informações de clientes específicos
-    - Calcular estatísticas e análises financeiras
-    - Identificar padrões de gastos
-    - Fornecer insights sobre transações
-    - Responder perguntas sobre valores, datas e clientes
+    - Consultar pagamentos, clientes e cartões
+    - Buscar informações de tripulantes, missões e tarefas
+    - Verificar sinais de saúde de cada agente
+    - Calcular estatísticas operacionais e financeiras
+    - Identificar padrões de risco, carga e prioridade
+    - Fornecer insights sobre transações, saude e rotina da equipe
     
     💡 INSTRUÇÕES:
     - Use os dados do contexto fornecido para responder com precisão
-    - Quando o usuário perguntar sobre um cliente, busque pelo nome exato
-    - Forneça valores sempre em formato brasileiro (R$)
-    - Seja analítica mas conversacional
-    - Se não encontrar algo, sugira alternativas
+    - Quando o usuário perguntar sobre um cliente ou tripulante, busque pelo nome aproximado e responda de forma direta
+    - Forneça valores sempre em formato brasileiro (R$) quando a pergunta for financeira
+    - Use termos do universo espacial quando falar de agentes, missões, sinais e tarefas
+    - Seja objetiva, acolhedora e técnica na medida certa
+    - Se não encontrar algo, diga o que faltou e sugira o próximo passo
     - Apresente números de forma clara e formatada
+    - Quando houver risco, prioridade ou alerta, destaque isso logo no início da resposta
     
     🎯 EXEMPLOS DE PERGUNTAS QUE VOCÊ PODE RESPONDER:
     - "Quanto Bruno Souza gastou?"
@@ -56,6 +60,10 @@ export class LumaService {
     - "Mostre as transações acima de R$ 500"
     - "Quem são os clientes que mais gastam?"
     - "Quantas transações foram feitas em julho?"
+    - "Como está o agente Orion?"
+    - "Quais sinais de saúde estão em alerta?"
+    - "Quais tarefas estão pendentes na nave?"
+    - "Qual tripulante precisa de mais descanso?"
   `;
 
   constructor(private http: HttpClient) {
@@ -63,11 +71,12 @@ export class LumaService {
   }
 
   private dashboardContext = inject(DashboardContextService);
+  private spaceContext = inject(SpaceContextService);
 
   private initializeChat(): void {
     const welcomeMessage: ChatMessage = {
       role: 'assistant',
-      content: 'Olá! Sou a Luma, sua assistente virtual do Smart HAS. Como posso ajudá-lo hoje? 😊',
+      content: 'Olá, eu sou a Luma, a central de apoio do MindSpace. Posso ajudar com a tripulação, os sinais de saúde, as tarefas ou os dados do painel.',
       timestamp: new Date()
     };
     this.chatHistorySubject.next([welcomeMessage]);
@@ -85,11 +94,18 @@ export class LumaService {
 
     // Adicionar contexto do dashboard automaticamente
     const dashboardContext = this.dashboardContext.getFormattedContext();
+    const spaceContext = this.spaceContext.getFormattedContext();
     const enhancedContextData = {
       ...contextData,
       dashboardData: dashboardContext,
+      spaceData: spaceContext,
       stats: this.dashboardContext.getStats(),
-      recentTransactions: this.dashboardContext.getTransactions().slice(0, 20)
+      recentTransactions: this.dashboardContext.getTransactions().slice(0, 20),
+      crewStats: this.spaceContext.getStats(),
+      agents: this.spaceContext.getAgents(),
+      missions: this.spaceContext.getMissions(),
+      healthSignals: this.spaceContext.getSignals(),
+      tasks: this.spaceContext.getTasks()
     };
 
     return this.callGeminiAPI(userMessage, enhancedContextData).pipe(
@@ -109,7 +125,7 @@ export class LumaService {
         console.error('Erro ao comunicar com Luma:', error);
         const errorMessage: ChatMessage = {
           role: 'assistant',
-          content: 'Desculpe, estou tendo dificuldades para processar sua mensagem. Pode tentar novamente?',
+          content: 'Não consegui processar essa solicitação agora. Tente novamente em alguns instantes ou reformule a pergunta.',
           timestamp: new Date()
         };
         
